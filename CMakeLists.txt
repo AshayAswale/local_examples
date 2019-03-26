@@ -90,6 +90,11 @@ add_executable(trial_manipulation_node src/trial_manipulation_node.cpp)
 add_dependencies(trial_manipulation_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(trial_manipulation_node  ${catkin_LIBRARIES} ${PROJECT_NAME})
 
+## Test arm navigation
+add_executable(gaze_controller src/gaze_controller.cpp)
+add_dependencies(gaze_controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(gaze_controller  ${catkin_LIBRARIES} ${PROJECT_NAME})
+
 ## CSV trial 
 #add_executable(testCsv src/testCsv.cpp)
 #add_dependencies(testCsv ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
