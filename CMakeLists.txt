@@ -95,6 +95,16 @@ add_executable(gaze_controller src/gaze_controller.cpp)
 add_dependencies(gaze_controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(gaze_controller  ${catkin_LIBRARIES} ${PROJECT_NAME})
 
+## Test arm navigation
+add_executable(hand_command_publisher src/hand_command_publisher.cpp)
+add_dependencies(hand_command_publisher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(hand_command_publisher  ${catkin_LIBRARIES} ${PROJECT_NAME})
+
+## Test arm navigation
+add_executable(get_frames src/get_frames.cpp)
+add_dependencies(get_frames ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(get_frames  ${catkin_LIBRARIES} ${PROJECT_NAME})
+
 ## CSV trial 
 #add_executable(testCsv src/testCsv.cpp)
 #add_dependencies(testCsv ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
