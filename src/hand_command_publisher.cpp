@@ -3,7 +3,7 @@
 #include <std_msgs/Float64MultiArray.h>
 #include <std_msgs/MultiArrayDimension.h>
 
-ros::Publisher* hand_msg_pub;
+ros::Publisher *left_hand_msg_pub, *right_hand_msg_pub;
 std_msgs::Float64MultiArray hand_msg_close, hand_msg_open;
 
 void insertDataToMultiArray()
@@ -22,11 +22,17 @@ void callback(ihmc_msgs::HandDesiredConfigurationRosMessage hand_desired_config)
 {
   if (hand_desired_config.hand_desired_configuration == 2)
   {
-  hand_msg_pub->publish(hand_msg_close);
+    if(hand_desired_config.robot_side == 0)
+      left_hand_msg_pub->publish(hand_msg_close);
+    else
+      right_hand_msg_pub->publish(hand_msg_close);      
   }
   else if(hand_desired_config.hand_desired_configuration == 1)
   {
-  hand_msg_pub->publish(hand_msg_open);
+    if(hand_desired_config.robot_side == 0)
+      left_hand_msg_pub->publish(hand_msg_open);
+    else
+      right_hand_msg_pub->publish(hand_msg_open);
   }
 }
 
@@ -47,8 +53,11 @@ int main(int argc, char** argv)
 
   insertDataToMultiArray();
 
-  ros::Publisher publish = nh.advertise<std_msgs::Float64MultiArray>("/reflex_hand_desired_config", 100);
-  hand_msg_pub = &publish;
+  ros::Publisher publish_left = nh.advertise<std_msgs::Float64MultiArray>("/left_reflex_hand_desired_config", 100);
+  left_hand_msg_pub = &publish_left;
+
+  ros::Publisher publish_right = nh.advertise<std_msgs::Float64MultiArray>("/right_reflex_hand_desired_config", 100);
+  right_hand_msg_pub = &publish_right;
   // ros::Publisher publish_ihmc = nh.advertise<ihmc_msgs::HandDesiredConfigurationRosMessage>("/ihmc_ros/atlas/control/hand_desired_configuration", 100);
   ros::Subscriber subscribe = nh.subscribe("/ihmc_ros/atlas/control/hand_desired_configuration", 100, callback);
 
