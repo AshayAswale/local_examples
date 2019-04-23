@@ -59,16 +59,17 @@ void gazeControl()
   double yaw_current = state_informer_->getJointPosition("back_bkz");  // should be taken from rd_
 
   float roll = 0, pitch = 0, yaw = 0;
-  float kp_pitch = 10, kp_yaw = 10;
+  float kp_pitch = 10, kp_yaw = 1;
 
   pitch = pitch_current + kp_pitch * pitch_error;
   yaw = yaw_current + kp_yaw * yaw_error;
+  ROS_INFO_STREAM("yaw: "<<yaw<<"   pitch: "<<pitch);
 
   // if (yaw < 0.15 && yaw > -0.15)
   //   headController_->moveHead(roll_error, pitch_error, yaw_error);
 
   // else
-  chestControl_->controlChest(roll, 0, yaw);
+  chestControl_->controlChest(0, 0, yaw);
 
   ros::Duration(0.25).sleep();
 }
