@@ -13,6 +13,7 @@ HeadControlInterface* headController_;
 geometry_msgs::PointStamped object_point_;
 RobotDescription* rd_;
 bool value_initialized_ = false;
+bool execute_chest_once = false;
 
 float getYaw(const geometry_msgs::Point& object_point)
 {
@@ -24,24 +25,6 @@ float getPitch(const geometry_msgs::Point& object_point)
 {
   float pitch = atan(object_point.z / object_point.x);
   return pitch;
-}
-
-void gazeControl()
-{
-  geometry_msgs::Point object_point_head;
-
-  float yaw_error = 0, roll_error = 0, pitch_error = 0;
-  state_informer_->transformPoint(object_point_.point, object_point_head, rd_->getWorldFrame(),
-                                  TOUGH_COMMON_NAMES::ROBOT_HEAD_FRAME_TF);
-  yaw_error = getYaw(object_point_head);
-  pitch_error = -1 * getPitch(object_point_head);
-
-  double head_position = state_informer_->getJointPosition("neck_ry");
-
-  ROS_INFO_STREAM(head_position);
-
-  headController_->moveHead(roll_error, pitch_error, yaw_error);
-  ros::Duration(0.25).sleep();
 }
 
 void moveGazeOnce()
@@ -56,6 +39,38 @@ void moveGazeOnce()
 
   chestControl_->controlChest(roll, pitch, yaw);
   ros::Duration(1.0).sleep();
+  execute_chest_once = false;
+}
+
+void gazeControl()
+{
+  if (execute_chest_once)
+    moveGazeOnce();
+
+  geometry_msgs::Point object_point_head;
+
+  float yaw_error = 0, roll_error = 0, pitch_error = 0;
+  state_informer_->transformPoint(object_point_.point, object_point_head, rd_->getWorldFrame(),
+                                  TOUGH_COMMON_NAMES::ROBOT_HEAD_FRAME_TF);
+  yaw_error = getYaw(object_point_head);
+  pitch_error = -1 * getPitch(object_point_head);
+
+  double pitch_current = state_informer_->getJointPosition("neck_ry");
+  double yaw_current = state_informer_->getJointPosition("back_bkz");  // should be taken from rd_
+
+  float roll = 0, pitch = 0, yaw = 0;
+  float kp_pitch = 10, kp_yaw = 10;
+
+  pitch = pitch_current + kp_pitch * pitch_error;
+  yaw = yaw_current + kp_yaw * yaw_error;
+
+  // if (yaw < 0.15 && yaw > -0.15)
+  //   headController_->moveHead(roll_error, pitch_error, yaw_error);
+
+  // else
+  chestControl_->controlChest(roll, 0, yaw);
+
+  ros::Duration(0.25).sleep();
 }
 
 void callback(const geometry_msgs::PointStamped clicked_point)
@@ -63,6 +78,7 @@ void callback(const geometry_msgs::PointStamped clicked_point)
   ROS_INFO("In Callback.");
   object_point_ = clicked_point;
   value_initialized_ = true;
+  execute_chest_once = true;
 }
 
 int main(int argc, char** argv)
@@ -84,8 +100,6 @@ int main(int argc, char** argv)
     ROS_INFO("Waiting...");
     ros::Duration(1.0).sleep();
   }
-
-  moveGazeOnce();
 
   while (ros::ok())
   {

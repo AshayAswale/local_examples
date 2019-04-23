@@ -56,6 +56,14 @@ include_directories(
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 install(DIRECTORY include/${PROJECT_NAME}/
+drill_grasp
+walk_2d_pose_goal_example
+manipulation_planner_node
+manipulation_node
+trial_manipulation_node
+gaze_controller
+get_frames
+test_com
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
   FILES_MATCHING PATTERN "*.h"
   PATTERN ".svn" EXCLUDE
@@ -96,16 +104,11 @@ add_dependencies(gaze_controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 target_link_libraries(gaze_controller  ${catkin_LIBRARIES} ${PROJECT_NAME})
 
 ## Test arm navigation
-add_executable(hand_command_publisher src/hand_command_publisher.cpp)
-add_dependencies(hand_command_publisher ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(hand_command_publisher  ${catkin_LIBRARIES} ${PROJECT_NAME})
-
-## Test arm navigation
 add_executable(get_frames src/get_frames.cpp)
 add_dependencies(get_frames ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(get_frames  ${catkin_LIBRARIES} ${PROJECT_NAME})
 
 ## CSV trial 
-#add_executable(testCsv src/testCsv.cpp)
-#add_dependencies(testCsv ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-#target_link_libraries(testCsv  ${catkin_LIBRARIES})
+add_executable(test_com src/test_com.cpp)
+add_dependencies(test_com ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(test_com  ${catkin_LIBRARIES})
