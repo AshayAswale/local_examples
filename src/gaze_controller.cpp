@@ -52,24 +52,30 @@ void gazeControl()
   float yaw_error = 0, roll_error = 0, pitch_error = 0;
   state_informer_->transformPoint(object_point_.point, object_point_head, rd_->getWorldFrame(),
                                   TOUGH_COMMON_NAMES::ROBOT_HEAD_FRAME_TF);
+
   yaw_error = getYaw(object_point_head);
   pitch_error = -1 * getPitch(object_point_head);
 
   double pitch_current = state_informer_->getJointPosition("neck_ry");
   double yaw_current = state_informer_->getJointPosition("back_bkz");  // should be taken from rd_
+  
+  static float yaw_error_derivative = 0.0, pitch_error_derivative = 0.0;
 
   float roll = 0, pitch = 0, yaw = 0;
-  float kp_pitch = 10, kp_yaw = 1;
+  float kp_pitch = 1, kp_yaw = 1, kd_yaw = 1, kd_pitch = 1;
 
-  pitch = pitch_current + kp_pitch * pitch_error;
-  yaw = yaw_current + kp_yaw * yaw_error;
+  pitch = pitch_current + kp_pitch * pitch_error + kd_pitch*pitch_error_derivative;
+  yaw = yaw_current + kp_yaw * yaw_error + kd_yaw * yaw_error_derivative;
   ROS_INFO_STREAM("yaw: "<<yaw<<"   pitch: "<<pitch);
 
   // if (yaw < 0.15 && yaw > -0.15)
-  //   headController_->moveHead(roll_error, pitch_error, yaw_error);
-
-  // else
+  headController_->moveHead(0, pitch_error, 0);
   chestControl_->controlChest(0, 0, yaw);
+  
+  static float yaw_error_old = yaw_error, pitch_error_old = pitch_error;
+  yaw_error_derivative = (yaw_error - yaw_error_old) / 0.25f;
+  pitch_error_derivative = (pitch_error - pitch_error_old) / 0.25f;
+
 
   ros::Duration(0.25).sleep();
 }
