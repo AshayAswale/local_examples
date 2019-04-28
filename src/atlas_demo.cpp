@@ -68,7 +68,7 @@ int main(int argc, char **argv)
   ros::NodeHandle nh;
 
   int stage = 1;
-  char user_input, action;
+  char action;
   bool execute_code = true;
   const double TO_RADIANS = M_PI / 180.0;
   float ten_degree = 10 * TO_RADIANS;
@@ -84,19 +84,27 @@ int main(int argc, char **argv)
   {
     std::string curr_prompt = showPrompt(stage), prev_prompt = showPrompt(stage - 1);
     std::cout << std::endl << std::endl << "Please enter" << std::endl;
-    std::cout << "'n' to   :   " << curr_prompt << std::endl;
-    std::cout << "'p' to   :   " << prev_prompt << std::endl;
-    std::cout << "'q' to   :   Exit Code" << std::endl;
-    std::cin >> action;
+    std::cout << "'n' or Enter to :   " << curr_prompt << std::endl;
+    std::cout << "'p' to          :   " << prev_prompt << std::endl;
+    std::cout << "'q' or Esc to   :   Exit Code" << std::endl;
+    action = std::cin.get();
 
-    if(action == 'p')
-      stage--;
-    else if(action != 'n')
+    if(action != '\n')
+    std::cin.ignore();
+
+    if (action == 'p')
+      stage--; 
+    else if(action == 27 || action == 'q') // ESC is 27
     {
-      std::cout << "Invalid input. Exiting the code" << std::endl;
+      std::cout << "Exiting the code" << std::endl;
       break;
     }
-    
+    else if((action != 'n') && (action != '\n'))
+    {
+      std::cout << "Invalid input. Input again" << std::endl;
+      // std::cin.ignore();
+      continue;
+    }
 
     switch (stage)
     {
