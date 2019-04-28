@@ -64,6 +64,7 @@ trial_manipulation_node
 gaze_controller
 get_frames
 test_com
+atlas_demo
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
   FILES_MATCHING PATTERN "*.h"
   PATTERN ".svn" EXCLUDE
@@ -107,3 +108,8 @@ target_link_libraries(gaze_controller  ${catkin_LIBRARIES} ${PROJECT_NAME})
 add_executable(test_com src/test_com.cpp)
 add_dependencies(test_com ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(test_com  ${catkin_LIBRARIES})
+
+## CSV trial 
+add_executable(atlas_demo src/atlas_demo.cpp)
+add_dependencies(atlas_demo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(atlas_demo  ${catkin_LIBRARIES})

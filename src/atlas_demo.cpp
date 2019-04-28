@@ -1,0 +1,166 @@
+#include <tough_common/robot_description.h>
+#include <tough_controller_interface/arm_control_interface.h>
+#include <tough_footstep/robot_walker.h>
+#include <tough_controller_interface/chest_control_interface.h>
+
+void setArmPose(geometry_msgs::Pose &arm_pose)
+{
+  arm_pose.orientation.w = 1;
+  arm_pose.position.x = 0.5;
+  arm_pose.position.y = -0.5;
+  arm_pose.position.z = 0.2;
+}
+
+std::string showPrompt(int stage)
+{
+  std::string prompt = "";
+  switch (stage)
+  {
+  case 0:
+    prompt = "Exit code.";
+    break;
+
+  case 1:
+    prompt = "Walk robot by 4 steps";
+    break;
+
+  case 2:
+    prompt = "Move Hand to 0.5 -0.5 0.2";
+    break;
+
+  case 3:
+    prompt = "Bend chest with yaw and pitch of 10`";
+    break;
+
+  case 4:
+    prompt = "Reset robot pose";
+    break;
+
+  case 5:
+    prompt = "Lift Right leg";
+    break;
+
+  case 6:
+    prompt = "Move Hand to 0.5 -0.5 0.2";
+    break;
+
+  case 7:
+    prompt = "Bend chest with yaw and pitch of 10`";
+    break;
+
+  case 8:
+    prompt = "Reset Pose, and place leg";
+    break;
+
+  case 9:
+    prompt = "Restart Task";
+    break;
+
+  default:
+    break;
+  }
+  return prompt;
+}
+
+int main(int argc, char **argv)
+{
+  ros::init(argc, argv, "atlas_demo_node");
+  ros::NodeHandle nh;
+
+  int stage = 1;
+  char user_input, action;
+  bool execute_code = true;
+  const double TO_RADIANS = M_PI / 180.0;
+  float ten_degree = 10 * TO_RADIANS;
+  geometry_msgs::Pose arm_pose;
+
+  ArmControlInterface arm_controller(nh);
+  ChestControlInterface chest_controller(nh);
+  RobotWalker robot_walker(nh, 0.8, 0.8);
+
+  setArmPose(arm_pose);
+
+  while (execute_code)
+  {
+    std::string curr_prompt = showPrompt(stage), prev_prompt = showPrompt(stage - 1);
+    std::cout << std::endl << std::endl << "Please enter" << std::endl;
+    std::cout << "'n' to   :   " << curr_prompt << std::endl;
+    std::cout << "'p' to   :   " << prev_prompt << std::endl;
+    std::cout << "'q' to   :   Exit Code" << std::endl;
+    std::cin >> action;
+
+    if(action == 'p')
+      stage--;
+    else if(action != 'n')
+    {
+      std::cout << "Invalid input. Exiting the code" << std::endl;
+      break;
+    }
+    
+
+    switch (stage)
+    {
+      case 1:
+        std::cout << "Walking 4 steps"<<std::endl;
+        robot_walker.walkNSteps(4, 0.3);
+        break;
+
+      case 2:
+        std::cout << "Moving Hand"<<std::endl;
+        arm_controller.moveArmInTaskSpace(RobotSide::RIGHT, arm_pose, 3.0);
+        ros::Duration(3.0f).sleep();
+        break;
+
+      case 3:
+        std::cout << "Moving Chest"<<std::endl;
+        chest_controller.controlChest(0, ten_degree, ten_degree, 1.5);
+        ros::Duration(1.5f).sleep();
+        break;
+
+      case 4:
+        std::cout << "resetting pose" << std::endl;
+        arm_controller.moveToDefaultPose(RobotSide::RIGHT, 2.0);
+        chest_controller.resetPose(2.0);
+        ros::Duration(2.5f).sleep();
+        break;
+
+      case 5:
+        std::cout << "Lifting Right Leg" << std::endl;
+        robot_walker.raiseLeg(RobotSide::RIGHT, 0.2, 2.0);
+        ros::Duration(2.0f).sleep();
+        break;
+
+      case 6:
+        std::cout << "Moving Hand" << std::endl;
+        arm_controller.moveArmInTaskSpace(RobotSide::RIGHT, arm_pose, 3.0);
+        ros::Duration(3.0).sleep();
+        break;
+
+      case 7:
+        std::cout << "Moving Chest" << std::endl;
+        chest_controller.controlChest(0, ten_degree, ten_degree, 1.0);
+        ros::Duration(1.0f).sleep();
+        break;
+
+      case 8:
+        std::cout << "Reseting Pose, and place leg" << std::endl;
+        arm_controller.moveToDefaultPose(RobotSide::RIGHT, 2.0);
+        chest_controller.resetPose(2.0);
+        robot_walker.placeLeg(RobotSide::RIGHT, 0.1, 2.0);
+        ros::Duration(3.0f).sleep();
+        break;
+
+      case 9:
+        stage = 1;
+        break;
+
+      default:
+        std::cout << "Exiting the code" << std::endl;
+        execute_code = false;
+        break;
+      }
+      stage++;
+  }
+
+  return 0;
+}
