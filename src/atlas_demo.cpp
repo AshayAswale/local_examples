@@ -2,8 +2,9 @@
 #include <tough_controller_interface/arm_control_interface.h>
 #include <tough_footstep/robot_walker.h>
 #include <tough_controller_interface/chest_control_interface.h>
+#include <tough_controller_interface/gripper_control_interface.h>
 
-void setArmPose(geometry_msgs::Pose &arm_pose)
+void setArmPose(geometry_msgs::Pose& arm_pose)
 {
   arm_pose.orientation.w = 1;
   arm_pose.position.x = 0.5;
@@ -16,53 +17,57 @@ std::string showPrompt(int stage)
   std::string prompt = "";
   switch (stage)
   {
-  case 0:
-    prompt = "Exit code.";
-    break;
+    case 0:
+      prompt = "Exit code.";
+      break;
 
-  case 1:
-    prompt = "Walk robot by 4 steps";
-    break;
+    case 1:
+      prompt = "Walk robot by 4 steps";
+      break;
 
-  case 2:
-    prompt = "Move Hand to 0.5 -0.5 0.2";
-    break;
+    case 2:
+      prompt = "Move Hand to 0.5 -0.5 0.2";
+      break;
 
-  case 3:
-    prompt = "Bend chest with yaw and pitch of 10`";
-    break;
+    case 3:
+      prompt = "Bend chest with yaw and pitch of 10`";
+      break;
 
-  case 4:
-    prompt = "Reset robot pose";
-    break;
+    case 4:
+      prompt = "Reset robot pose";
+      break;
 
-  case 5:
-    prompt = "Lift Right leg";
-    break;
+    case 5:
+      prompt = "Lift Right leg";
+      break;
 
-  case 6:
-    prompt = "Move Hand to 0.5 -0.5 0.2";
-    break;
+    case 6:
+      prompt = "Move Hand to 0.5 -0.5 0.2";
+      break;
 
-  case 7:
-    prompt = "Bend chest with yaw and pitch of 10`";
-    break;
+    case 7:
+      prompt = "Bend chest with yaw and pitch of 10`";
+      break;
 
-  case 8:
-    prompt = "Reset Pose, and place leg";
-    break;
+    case 8:
+      prompt = "Reset Pose";
+      break;
 
-  case 9:
-    prompt = "Restart Task";
-    break;
+    case 9:
+      prompt = "Place Leg";
+      break;
 
-  default:
-    break;
+    case 10:
+      prompt = "Restart Task";
+      break;
+
+    default:
+      break;
   }
   return prompt;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   ros::init(argc, argv, "atlas_demo_node");
   ros::NodeHandle nh;
@@ -71,12 +76,13 @@ int main(int argc, char **argv)
   char action;
   bool execute_code = true;
   const double TO_RADIANS = M_PI / 180.0;
-  float ten_degree = 10 * TO_RADIANS;
+  float ten_degrees_in_radians = 10 * TO_RADIANS;
   geometry_msgs::Pose arm_pose;
 
   ArmControlInterface arm_controller(nh);
   ChestControlInterface chest_controller(nh);
-  RobotWalker robot_walker(nh, 0.8, 0.8);
+  GripperControlInterface gripper_controller(nh);
+  RobotWalker robot_walker(nh, 0.8, 0.8, 0, 0.18);
 
   setArmPose(arm_pose);
 
@@ -89,17 +95,17 @@ int main(int argc, char **argv)
     std::cout << "'q' or Esc to   :   Exit Code" << std::endl;
     action = std::cin.get();
 
-    if(action != '\n')
-    std::cin.ignore();
+    if (action != '\n')
+      std::cin.ignore();
 
     if (action == 'p')
-      stage--; 
-    else if(action == 27 || action == 'q') // ESC is 27
+      stage--;
+    else if (action == 27 || action == 'q')  // ESC is 27
     {
       std::cout << "Exiting the code" << std::endl;
       break;
     }
-    else if((action != 'n') && (action != '\n'))
+    else if ((action != 'n') && (action != '\n'))
     {
       std::cout << "Invalid input. Input again" << std::endl;
       // std::cin.ignore();
@@ -109,27 +115,31 @@ int main(int argc, char **argv)
     switch (stage)
     {
       case 1:
-        std::cout << "Walking 4 steps"<<std::endl;
-        robot_walker.walkNSteps(4, 0.3);
+        std::cout << "Walking 4 steps" << std::endl;
+        robot_walker.walkNStepsWRTPelvis(4, 0.3);
         break;
 
       case 2:
-        std::cout << "Moving Hand"<<std::endl;
+        std::cout << "Moving Hand" << std::endl;
         arm_controller.moveArmInTaskSpace(RobotSide::RIGHT, arm_pose, 3.0);
         ros::Duration(3.0f).sleep();
+        gripper_controller.openGripper(RobotSide::RIGHT);
+        ros::Duration(1.0f).sleep();
         break;
 
       case 3:
-        std::cout << "Moving Chest"<<std::endl;
-        chest_controller.controlChest(0, ten_degree, ten_degree, 1.5);
+        std::cout << "Moving Chest" << std::endl;
+        chest_controller.controlChest(0, ten_degrees_in_radians, ten_degrees_in_radians, 1.5);
         ros::Duration(1.5f).sleep();
         break;
 
       case 4:
         std::cout << "resetting pose" << std::endl;
-        arm_controller.moveToDefaultPose(RobotSide::RIGHT, 2.0);
         chest_controller.resetPose(2.0);
-        ros::Duration(2.5f).sleep();
+        ros::Duration(2.0f).sleep();
+        gripper_controller.closeGripper(RobotSide::RIGHT);
+        arm_controller.moveToDefaultPose(RobotSide::RIGHT, 2.0);
+        ros::Duration(2.0f).sleep();
         break;
 
       case 5:
@@ -142,32 +152,41 @@ int main(int argc, char **argv)
         std::cout << "Moving Hand" << std::endl;
         arm_controller.moveArmInTaskSpace(RobotSide::RIGHT, arm_pose, 3.0);
         ros::Duration(3.0).sleep();
+        gripper_controller.openGripper(RobotSide::RIGHT);
+        ros::Duration(1.0).sleep();
         break;
 
       case 7:
         std::cout << "Moving Chest" << std::endl;
-        chest_controller.controlChest(0, ten_degree, ten_degree, 1.0);
+        chest_controller.controlChest(0, ten_degrees_in_radians, ten_degrees_in_radians, 1.0);
         ros::Duration(1.0f).sleep();
         break;
 
       case 8:
-        std::cout << "Reseting Pose, and place leg" << std::endl;
-        arm_controller.moveToDefaultPose(RobotSide::RIGHT, 2.0);
+        std::cout << "Reseting Pose" << std::endl;
         chest_controller.resetPose(2.0);
-        robot_walker.placeLeg(RobotSide::RIGHT, 0.1, 2.0);
-        ros::Duration(3.0f).sleep();
+        ros::Duration(2.0f).sleep();
+        gripper_controller.closeGripper(RobotSide::RIGHT);
+        arm_controller.moveToDefaultPose(RobotSide::RIGHT, 2.0);
+        ros::Duration(2.0f).sleep();
         break;
 
       case 9:
-        stage = 1;
+        std::cout << "Placing leg " << std::endl;
+        robot_walker.placeLeg(RobotSide::RIGHT, 0.2, 2.0);
+        ros::Duration(3.0f).sleep();
+        break;
+
+      case 10:
+        stage = 0;
         break;
 
       default:
         std::cout << "Exiting the code" << std::endl;
         execute_code = false;
         break;
-      }
-      stage++;
+    }
+    stage++;
   }
 
   return 0;
