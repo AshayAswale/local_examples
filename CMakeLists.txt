@@ -100,13 +100,8 @@ add_executable(test_com src/test_com.cpp)
 add_dependencies(test_com ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(test_com  ${catkin_LIBRARIES})
 
-## CSV trial 
-add_executable(atlas_demo src/atlas_demo.cpp)
-add_dependencies(atlas_demo ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(atlas_demo  ${catkin_LIBRARIES})
-
  install(TARGETS ${PROJECT_NAME} drill_grasp walk_2d_pose_goal_example manipulation_planner_node 
-        manipulation_node trial_manipulation_node gaze_controller test_com atlas_demo
+        manipulation_node trial_manipulation_node gaze_controller test_com
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
