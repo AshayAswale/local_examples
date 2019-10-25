@@ -100,8 +100,13 @@ add_executable(test_com src/test_com.cpp)
 add_dependencies(test_com ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(test_com  ${catkin_LIBRARIES})
 
+## Testing IHMC message
+add_executable(test_ihmc_msgs src/test_ihmc_msgs.cpp)
+add_dependencies(test_ihmc_msgs ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(test_ihmc_msgs  ${catkin_LIBRARIES})
+
  install(TARGETS ${PROJECT_NAME} drill_grasp walk_2d_pose_goal_example manipulation_planner_node 
-        manipulation_node trial_manipulation_node gaze_controller test_com
+        manipulation_node trial_manipulation_node gaze_controller test_com test_ihmc_msgs
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
